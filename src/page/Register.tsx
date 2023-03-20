@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, FormEvent } from "react";
 import * as z from "zod";
 import { ZodError } from "zod";
 import { api } from "../lib/axios";
@@ -11,40 +11,62 @@ import {
   InputsContainer,
 } from "./styles";
 
+type User = {
+  name: string;
+  email: string;
+  password: string;
+};
+
+const schema = z.object({
+  email: z.string().email("E-mail inválido"),
+  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
+});
+
 export function Register() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [erro, setErro] = useState("");
+  const [user, setUser] = useState<User>({ name: "", email: "", password: "" });
+  const [erro, setErro] = useState<string | null>(null);
 
-  const schema = z.object({
-    email: z.string().email("E-mail inválido"),
-    password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
-  });
+  function resetInputs() {
+    setUser({ name: "", email: "", password: "" });
+  }
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
+  function validateFields(email: string, password: string) {
     try {
       schema.parse({ email, password });
-      const parms = {
-        name: name,
-        email: email,
-        password: password,
-      };
-      await api.post("/users", parms);
-      alert("register!!");
-      setName("");
-      setEmail("");
-      setPassword("");
+      return true;
     } catch (error: unknown) {
       if (error instanceof ZodError) {
-        setErro(error.errors[0].message);
-      } else {
-        console.error(error);
-        setErro("Ocorreu um erro inesperado.");
+        return false;
       }
+      throw error;
     }
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!validateFields(user.email, user.password)) {
+      return;
+    }
+
+    try {
+      await api.post("/users", user);
+      resetInputs();
+      setErro(null);
+    } catch (error) {
+      setErro("Erro ao cadastrar usuário.");
+    }
+  }
+
+  function handleNameChange(event: React.ChangeEvent<HTMLInputElement>) {
+    setUser((prevUser) => ({ ...prevUser, name: event.target.value }));
+  }
+
+  function handleEmailChange(event: React.ChangeEvent<HTMLInputElement>) {
+    setUser((prevUser) => ({ ...prevUser, email: event.target.value }));
+  }
+
+  function handlePasswordChange(event: React.ChangeEvent<HTMLInputElement>) {
+    setUser((prevUser) => ({ ...prevUser, password: event.target.value }));
   }
 
   return (
@@ -59,22 +81,22 @@ export function Register() {
           <Inputs
             autoComplete="off"
             type="text"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
+            value={user.name}
+            onChange={handleNameChange}
           />
           <label>Email</label>
           <Inputs
             autoComplete="off"
             type="text"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
+            value={user.email}
+            onChange={handleEmailChange}
           />
           <label>Senha</label>
           <Inputs
             autoComplete="off"
             type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
+            value={user.password}
+            onChange={handlePasswordChange}
           />
 
           <Button type="submit">registrar</Button>
