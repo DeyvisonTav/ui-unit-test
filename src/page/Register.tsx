@@ -11,11 +11,11 @@ import {
   InputsContainer,
 } from "./styles";
 
-type User = {
+interface UserProps {
   name: string;
   email: string;
   password: string;
-};
+}
 
 const schema = z.object({
   email: z.string().email("E-mail inválido"),
@@ -23,7 +23,11 @@ const schema = z.object({
 });
 
 export function Register() {
-  const [user, setUser] = useState<User>({ name: "", email: "", password: "" });
+  const [user, setUser] = useState<UserProps>({
+    name: "",
+    email: "",
+    password: "",
+  });
   const [erro, setErro] = useState<string | null>(null);
 
   function resetInputs() {
