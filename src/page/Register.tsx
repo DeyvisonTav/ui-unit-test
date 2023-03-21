@@ -33,7 +33,7 @@ export function Register() {
         password: password,
       };
       await api.post("/users", parms);
-      alert("register!!");
+      alert("Foi registrado com sucesso!");
       setName("");
       setEmail("");
       setPassword("");
