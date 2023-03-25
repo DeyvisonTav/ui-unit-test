@@ -17,7 +17,7 @@ interface UserProps {
   password: string;
 }
 
-const schema = z.object({
+export const schema = z.object({
   email: z.string().email("E-mail inválido"),
   password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
 });
